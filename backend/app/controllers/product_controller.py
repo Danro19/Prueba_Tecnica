@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.repositories.product_repository import ProductRepository
@@ -6,7 +7,6 @@ from app.repositories.category_repository import CategoryRepository
 from app.services.product_service import ProductService
 from app.schemas.product_schema import ProductCreate, ProductUpdate, ProductResponse
 
-# Router con prefijo y tag para agrupar en la documentación de Swagger
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
@@ -27,9 +27,13 @@ def get_service(db: Session = Depends(get_db)) -> ProductService:
 
 
 @router.get("/", response_model=list[ProductResponse])
-def get_all(service: ProductService = Depends(get_service)):
-    """Retorna todos los productos."""
-    return service.get_all()
+def get_all(
+    category_id: Optional[int] = Query(None, description="Filtrar por categoría"),
+    code: Optional[str] = Query(None, description="Buscar por código"),
+    service: ProductService = Depends(get_service)
+):
+    """Retorna todos los productos. Acepta filtros opcionales por categoría y código."""
+    return service.get_all(category_id=category_id, code=code)
 
 
 @router.get("/{product_id}", response_model=ProductResponse)

@@ -9,13 +9,12 @@ class ProductService:
     """Capa de lógica de negocio para productos."""
 
     def __init__(self, product_repository: ProductRepository, category_repository: CategoryRepository):
-        # Repositorios inyectados desde el exterior (principio de inversión de dependencias)
         self.product_repository = product_repository
         self.category_repository = category_repository
 
-    def get_all(self) -> list[Product]:
-        """Retorna todos los productos."""
-        return self.product_repository.get_all()
+    def get_all(self, category_id: int = None, code: str = None) -> list[Product]:
+        """Retorna productos con filtros opcionales de categoría y código."""
+        return self.product_repository.get_all(category_id=category_id, code=code)
 
     def get_by_id(self, product_id: int) -> Product:
         """Retorna un producto por ID. Lanza 404 si no existe."""
@@ -29,13 +28,11 @@ class ProductService:
 
     def create(self, data: ProductCreate) -> Product:
         """Crea un nuevo producto. Valida código único y existencia de categoría."""
-        # Valida que el código no esté en uso
         if self.product_repository.get_by_code(data.code):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Ya existe un producto con el código '{data.code}'."
             )
-        # Valida que la categoría exista
         if not self.category_repository.get_by_id(data.category_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -47,7 +44,6 @@ class ProductService:
         """Actualiza un producto existente. Valida código único y existencia de categoría."""
         product = self.get_by_id(product_id)
 
-        # Valida código único solo si se está cambiando
         if data.code and data.code != product.code:
             if self.product_repository.get_by_code(data.code):
                 raise HTTPException(
@@ -55,7 +51,6 @@ class ProductService:
                     detail=f"Ya existe un producto con el código '{data.code}'."
                 )
 
-        # Valida que la categoría exista solo si se está cambiando
         if data.category_id and not self.category_repository.get_by_id(data.category_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -4,7 +4,7 @@ import categoryService from '../services/categoryService'
 
 /**
  * Hook que centraliza el estado y las operaciones de productos.
- * Expone datos y acciones para ser consumidos por las páginas.
+ * Soporta filtros por categoría y código.
  */
 const useProducts = () => {
   const [products, setProducts] = useState([])
@@ -12,49 +12,65 @@ const useProducts = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  /** Carga todos los productos desde la API */
-  const fetchProducts = async () => {
+  // Estado de los filtros activos
+  const [filters, setFilters] = useState({ categoryId: '', code: '' })
+
+  /** Carga productos aplicando los filtros actuales */
+  const fetchProducts = async (activeFilters = filters) => {
     setLoading(true)
     setError(null)
     try {
-      const data = await productService.getAll()
+      const data = await productService.getAll({
+        categoryId: activeFilters.categoryId || undefined,
+        code: activeFilters.code || undefined,
+      })
       setProducts(data)
-    } catch (err) {
+    } catch {
       setError('Error al cargar los productos.')
     } finally {
       setLoading(false)
     }
   }
 
-  /** Carga todas las categorías desde la API */
+  /** Carga todas las categorías */
   const fetchCategories = async () => {
     try {
       const data = await categoryService.getAll()
       setCategories(data)
-    } catch (err) {
+    } catch {
       setError('Error al cargar las categorías.')
     }
   }
 
-  /** Crea un nuevo producto y recarga la lista */
+  /** Actualiza un filtro y recarga los productos */
+  const updateFilter = (key, value) => {
+    const updated = { ...filters, [key]: value }
+    setFilters(updated)
+    fetchProducts(updated)
+  }
+
+  /** Limpia todos los filtros */
+  const clearFilters = () => {
+    const reset = { categoryId: '', code: '' }
+    setFilters(reset)
+    fetchProducts(reset)
+  }
+
   const createProduct = async (data) => {
     await productService.create(data)
     await fetchProducts()
   }
 
-  /** Actualiza un producto existente y recarga la lista */
   const updateProduct = async (id, data) => {
     await productService.update(id, data)
     await fetchProducts()
   }
 
-  /** Elimina un producto y recarga la lista */
   const deleteProduct = async (id) => {
     await productService.delete(id)
     await fetchProducts()
   }
 
-  // Carga inicial de productos y categorías al montar el hook
   useEffect(() => {
     fetchProducts()
     fetchCategories()
@@ -65,6 +81,9 @@ const useProducts = () => {
     categories,
     loading,
     error,
+    filters,
+    updateFilter,
+    clearFilters,
     createProduct,
     updateProduct,
     deleteProduct,

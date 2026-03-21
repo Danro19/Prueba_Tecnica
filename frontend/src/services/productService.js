@@ -1,12 +1,14 @@
 import axios from 'axios'
 
-// Base URL tomada desde las variables de entorno
 const API_URL = `${import.meta.env.VITE_API_URL}/products`
 
 const productService = {
-  /** Retorna todos los productos */
-  getAll: async () => {
-    const response = await axios.get(`${API_URL}/`)
+  /** Retorna todos los productos con filtros opcionales */
+  getAll: async ({ categoryId, code } = {}) => {
+    const params = {}
+    if (categoryId) params.category_id = categoryId
+    if (code) params.code = code
+    const response = await axios.get(`${API_URL}/`, { params })
     return response.data
   },
 
