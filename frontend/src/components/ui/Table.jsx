@@ -1,21 +1,21 @@
 /**
- * Tabla reutilizable con cabeceras y filas dinámicas.
+ * Tabla reutilizable con estilo dark mode.
  * @param {string[]} headers - Títulos de las columnas
- * @param {React.ReactNode} children - Filas de la tabla (tr)
+ * @param {React.ReactNode} children - Filas de la tabla
  */
 
 const Table = ({ headers, children }) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="overflow-x-auto rounded-xl border border-[#2e2b45]">
+      <table className="min-w-full">
 
         {/* Cabecera */}
-        <thead className="bg-gray-50">
-          <tr>
+        <thead>
+          <tr className="bg-[#1e1d2a]">
             {headers.map((header) => (
               <th
                 key={header}
-                className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                className="px-5 py-3 text-left text-[11px] font-medium text-[#6b6890] uppercase tracking-wider"
               >
                 {header}
               </th>
@@ -24,7 +24,7 @@ const Table = ({ headers, children }) => {
         </thead>
 
         {/* Filas */}
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-[#17171f] divide-y divide-[#1e1d2a]">
           {children}
         </tbody>
 

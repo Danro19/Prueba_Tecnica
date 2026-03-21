@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from app.repositories.category_repository import CategoryRepository
 from app.schemas.category_schema import CategoryCreate, CategoryUpdate
 from app.models.category import Category
@@ -8,7 +9,6 @@ class CategoryService:
     """Capa de lógica de negocio para categorías."""
 
     def __init__(self, repository: CategoryRepository):
-        # Repositorio inyectado desde el exterior (principio de inversión de dependencias)
         self.repository = repository
 
     def get_all(self) -> list[Category]:
@@ -31,11 +31,17 @@ class CategoryService:
 
     def update(self, category_id: int, data: CategoryUpdate) -> Category:
         """Actualiza una categoría existente. Lanza 404 si no existe."""
-        # Primero verifica que la categoría exista
         category = self.get_by_id(category_id)
         return self.repository.update(category, data)
 
     def delete(self, category_id: int) -> None:
-        """Elimina una categoría. Lanza 404 si no existe."""
+        """Elimina una categoría. Lanza 404 si no existe o 409 si tiene productos."""
         category = self.get_by_id(category_id)
-        self.repository.delete(category)
+        try:
+            self.repository.delete(category)
+        except IntegrityError:
+            # SQL Server lanza IntegrityError cuando hay productos asociados
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No se puede eliminar la categoría porque tiene productos asociados. Elimina o reasigna los productos primero."
+            )

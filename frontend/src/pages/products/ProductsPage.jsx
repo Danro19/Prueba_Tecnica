@@ -1,105 +1,114 @@
 import { useState } from 'react'
 import useProducts from '../../hooks/useProducts'
+import useToast from '../../hooks/useToast'
 import Table from '../../components/ui/Table'
 import Button from '../../components/ui/Button'
+import Toast from '../../components/ui/Toast'
 import ProductForm from './ProductForm'
 import DeleteModal from './DeleteModal'
 
-/** Cabeceras de la tabla de productos */
 const TABLE_HEADERS = ['Código', 'Nombre', 'Categoría', 'Precio', 'Acciones']
 
 /**
- * Página principal de gestión de productos.
- * Lista, crea, edita y elimina productos.
+ * Página principal de gestión de productos con dark mode y toasts.
  */
 const ProductsPage = () => {
   const { products, categories, loading, error, createProduct, updateProduct, deleteProduct } = useProducts()
+  const { toast, showToast } = useToast()
 
-  // Estado del modal de formulario
   const [formOpen, setFormOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
-
-  // Estado del modal de confirmación de eliminación
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState(null)
 
-  /** Abre el formulario para crear un nuevo producto */
   const handleOpenCreate = () => {
     setSelectedProduct(null)
     setFormOpen(true)
   }
 
-  /** Abre el formulario para editar un producto existente */
   const handleOpenEdit = (product) => {
     setSelectedProduct(product)
     setFormOpen(true)
   }
 
-  /** Abre el modal de confirmación de eliminación */
   const handleOpenDelete = (product) => {
     setProductToDelete(product)
     setDeleteOpen(true)
   }
 
-  /** Envía el formulario de creación o edición */
   const handleSubmitForm = async (data) => {
-    if (selectedProduct) {
-      await updateProduct(selectedProduct.id, data)
-    } else {
-      await createProduct(data)
+    try {
+      if (selectedProduct) {
+        await updateProduct(selectedProduct.id, data)
+        showToast('Producto actualizado correctamente.', 'info')
+      } else {
+        await createProduct(data)
+        showToast('Producto creado correctamente.', 'success')
+      }
+      setFormOpen(false)
+    } catch {
+      showToast('Ocurrió un error. Intenta de nuevo.', 'danger')
     }
-    setFormOpen(false)
   }
 
-  /** Confirma y ejecuta la eliminación del producto */
   const handleConfirmDelete = async () => {
-    await deleteProduct(productToDelete.id)
-    setDeleteOpen(false)
+    try {
+      await deleteProduct(productToDelete.id)
+      showToast('Producto eliminado correctamente.', 'danger')
+      setDeleteOpen(false)
+    } catch {
+      showToast('No se pudo eliminar el producto.', 'danger')
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-[#0f0f13] p-6 md:p-8">
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Productos</h1>
+        <div>
+          <h1 className="text-xl font-medium text-[#e2e0f0]">Productos</h1>
+          <p className="text-sm text-[#6b6890] mt-0.5">{products.length} productos registrados</p>
+        </div>
         <Button onClick={handleOpenCreate}>+ Nuevo producto</Button>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-md text-sm">
+        <div className="mb-4 px-4 py-3 bg-[#e2736a11] border border-[#e2736a33] text-[#e2736a] rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {/* Tabla */}
       {loading ? (
-        <p className="text-gray-500 text-sm">Cargando productos...</p>
+        <div className="flex items-center justify-center py-20">
+          <p className="text-sm text-[#6b6890]">Cargando productos...</p>
+        </div>
       ) : (
         <Table headers={TABLE_HEADERS}>
           {products.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-6 py-6 text-center text-gray-400 text-sm">
+              <td colSpan={5} className="px-6 py-12 text-center text-[#6b6890] text-sm">
                 No hay productos registrados.
               </td>
             </tr>
           ) : (
             products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-700">{product.code}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">{product.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">{product.category.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  ${product.price.toFixed(2)}
+              <tr key={product.id} className="hover:bg-[#1e1d2a] transition-colors duration-150">
+                <td className="px-5 py-4 text-sm font-medium text-[#7F77DD]">{product.code}</td>
+                <td className="px-5 py-4 text-sm text-[#c4c0e0]">{product.name}</td>
+                <td className="px-5 py-4 text-sm">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#7F77DD22] text-[#AFA9EC] border border-[#7F77DD44]">
+                    {product.category.name}
+                  </span>
                 </td>
-                <td className="px-6 py-4 text-sm flex gap-2">
-                  <Button variant="secondary" onClick={() => handleOpenEdit(product)}>
-                    Editar
-                  </Button>
-                  <Button variant="danger" onClick={() => handleOpenDelete(product)}>
-                    Eliminar
-                  </Button>
+                <td className="px-5 py-4 text-sm text-[#c4c0e0]">${product.price.toFixed(2)}</td>
+                <td className="px-5 py-4 text-sm">
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => handleOpenEdit(product)}>Editar</Button>
+                    <Button variant="danger" onClick={() => handleOpenDelete(product)}>Eliminar</Button>
+                  </div>
                 </td>
               </tr>
             ))
@@ -107,22 +116,9 @@ const ProductsPage = () => {
         </Table>
       )}
 
-      {/* Modal formulario */}
-      <ProductForm
-        isOpen={formOpen}
-        product={selectedProduct}
-        categories={categories}
-        onSubmit={handleSubmitForm}
-        onClose={() => setFormOpen(false)}
-      />
-
-      {/* Modal confirmación eliminar */}
-      <DeleteModal
-        isOpen={deleteOpen}
-        product={productToDelete}
-        onConfirm={handleConfirmDelete}
-        onClose={() => setDeleteOpen(false)}
-      />
+      <ProductForm isOpen={formOpen} product={selectedProduct} categories={categories} onSubmit={handleSubmitForm} onClose={() => setFormOpen(false)} />
+      <DeleteModal isOpen={deleteOpen} product={productToDelete} onConfirm={handleConfirmDelete} onClose={() => setDeleteOpen(false)} />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => {}} />}
 
     </div>
   )
