@@ -3,6 +3,7 @@ import os
 
 load_dotenv()
 
-DB_SERVER = os.getenv("DB_SERVER")
-DB_NAME = os.getenv("DB_NAME")
-
+DB_SERVER: str = os.getenv("DB_SERVER")
+DB_NAME: str = os.getenv("DB_NAME")
+DB_USER: str = os.getenv("DB_USER")
+DB_PASSWORD: str = os.getenv("DB_PASSWORD")
