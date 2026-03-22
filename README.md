@@ -1,4 +1,4 @@
-# Prueba_Tecnica# Gestión de Productos — Prueba Técnica Fullstack
+# Gestión de Productos — Prueba Técnica Fullstack
 
 Aplicación web para la gestión de productos y categorías, desarrollada con FastAPI, React y SQL Server.
 
