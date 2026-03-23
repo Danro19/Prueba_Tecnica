@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'prueba-tecnica-api-rd'
           slot-name: 'Production'
-          startup-command: 'cd /home/site/wwwroot && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000'
+          startup-command: 'cd backend && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000'
